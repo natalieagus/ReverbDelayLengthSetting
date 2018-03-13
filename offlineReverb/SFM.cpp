@@ -20,7 +20,9 @@ SFM::SFM(size_t N){
     this->sequence_length = N;
     
     // initialize the setup struct
-    this->setup = vDSP_DFT_zop_CreateSetup(NULL, this->sequence_length, vDSP_DFT_FORWARD);
+//    this->setup = vDSP_DFT_zop_CreateSetup(NULL, this->sequence_length, vDSP_DFT_FORWARD);
+    this->setup_fft = vDSP_create_fftsetup(log2(this->sequence_length), kFFTRadix5);
+
     
     // create complex array with size of 2N (for Re and Im each)
     this->x_ptr_complex = (float*) malloc(N*sizeof(float)*2);
@@ -86,11 +88,17 @@ inline void SFM::fft(DSPComplex input[]) {
 
     vDSP_ctoz(input, 2, &inputSplit, 1, this->sequence_length);
     
+    //using DFT
     //vDSP_DFT_Setup setup = vDSP_DFT_zop_CreateSetup(NULL, this->sequence_length, vDSP_DFT_FORWARD);
+//    vDSP_DFT_Execute(this->setup,
+//                     inputSplit.realp, inputSplit.imagp,
+//                     outputSplit.realp, outputSplit.imagp);
+//
     
-    vDSP_DFT_Execute(this->setup,
-                     inputSplit.realp, inputSplit.imagp,
-                     outputSplit.realp, outputSplit.imagp);
+    //using out of place fft
+    vDSP_fft_zop(setup_fft, &inputSplit, 1, &outputSplit, 1, log2(this->sequence_length), FFT_FORWARD);
+    //inplace fft, doesn't seem to work
+    //    vDSP_fft_zrip(setup_fft, &inputSplit, 1, log2(this->sequence_length), FFT_FORWARD);
 }
 
 // Geometric mean computation using split exponent and mantissa
@@ -130,11 +138,16 @@ float SFM::spectral_flatness_value(float* x){
     convert_real_to_complex(x);
     fft((DSPComplex*)x_ptr_complex);
     
+    printf("\n FFT result: \n");
+    for (int i = 0; i<sequence_length; i++){
+        printf("{Re: %f, Im : %f}, \n ", outputSplit.realp[i], outputSplit.imagp[i]);
+    }
+    
 //    printf("\n FFT result: \n");
 //    for (int i = 0; i<sequence_length; i++){
-//        printf("{Re: %f, Im : %f}, \n ", outputSplit.realp[i], outputSplit.imagp[i]);
+//        printf("{Re: %f, Im : %f}, \n ", inputSplit.realp[i], inputSplit.imagp[i]);
 //    }
-    
+//
     assert(sequence_length%2 == 0);
     
     vDSP_zvabs(&this->outputSplit, 1, power_spectra, 1, sequence_length/2+1);

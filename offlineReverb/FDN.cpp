@@ -418,7 +418,7 @@ void FDN::setDelayTimesVelvet(){
     //    float maxDelayTime = 0.100f * 44100.0f;
     //    float minDelayTime = 0.007f * 44100.0f;
     float minDelayTime = 4.f;
-    float maxDelayTime = 40.f;
+    float maxDelayTime = 10.f;
     
     float outTapSpacing = (float)(maxDelayTime - minDelayTime) / (float)numDelays;
     randomSeed = std::rand() ;

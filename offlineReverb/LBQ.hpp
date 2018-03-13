@@ -30,11 +30,6 @@ private:
     float* temp;
     float* LBQ_denominator;
 
-    
-    
-    
-    
-    
 };
 
 #endif /* LBQ_hpp */

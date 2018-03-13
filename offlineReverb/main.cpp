@@ -101,8 +101,8 @@ int main(int argc, char* argv[])
     // Nearest power of 2 to 132300 is 2^17 = 131072
     // So set impulseLength (in samples) to 131072
 
-    int impulseLength = 16; // changed to smaller value for testing
-    int lags = 4;
+    int impulseLength = 8; // changed to smaller value for testing
+    int lags = 2;
 
     bool powerOfTwo = !(impulseLength==0) && !(impulseLength & (impulseLength-1));
     assert(powerOfTwo == true);
@@ -111,14 +111,15 @@ int main(int argc, char* argv[])
     SFM sfm = SFM(impulseLength);
     LBQ lbq_test = LBQ(impulseLength, lags);
 
-    float* SFM_output = (float*) malloc(impulseLength*sizeof(float));
-    float* LBQ_output = (float*) malloc(impulseLength*sizeof(float));
+    float* SFM_output = (float*) malloc(iteration*sizeof(float));
+    float* LBQ_output = (float*) malloc(iteration*sizeof(float));
+    
     for (int i = 0 ; i<iteration ; i++){
 
         memset(output, 0, impulseLength*sizeof(float));
         impulseResponse(16, impulseLength, output,1);
         
-//        for (int i = 0; i<impulseLength; i++) printf("%f ", output[i]);
+        for (int i = 0; i<impulseLength; i++) printf("%f ", output[i]);
 
         SFM_output[i] = sfm.spectral_flatness_value(output);
         LBQ_output[i] = lbq_test.LBQtest(output);
