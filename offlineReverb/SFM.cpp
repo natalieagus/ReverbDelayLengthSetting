@@ -17,6 +17,9 @@ SFM::SFM(size_t N){
     
     this->sequence_length = N;
     
+    // initialize the setup struct
+    this->setup = vDSP_DFT_zop_CreateSetup(NULL, this->sequence_length, vDSP_DFT_FORWARD);
+    
     // create complex array with size of 2N (for Re and Im each)
     this->x_ptr_complex = (float*) malloc(N*sizeof(float)*2);
     // create power spectra array
@@ -58,9 +61,9 @@ inline void SFM::fft(DSPComplex input[]) {
 
     vDSP_ctoz(input, 2, &inputSplit, 1, this->sequence_length);
     
-    vDSP_DFT_Setup setup = vDSP_DFT_zop_CreateSetup(NULL, this->sequence_length, vDSP_DFT_FORWARD);
+    //vDSP_DFT_Setup setup = vDSP_DFT_zop_CreateSetup(NULL, this->sequence_length, vDSP_DFT_FORWARD);
     
-    vDSP_DFT_Execute(setup,
+    vDSP_DFT_Execute(this->setup,
                      inputSplit.realp, inputSplit.imagp,
                      outputSplit.realp, outputSplit.imagp);
 }

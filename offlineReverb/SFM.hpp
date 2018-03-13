@@ -38,6 +38,7 @@ private:
     float* outputMemory;
     DSPSplitComplex inputSplit;
     DSPSplitComplex outputSplit;
+    vDSP_DFT_Setup setup;
     
     // Compute geometric mean
     // data     : real value array
