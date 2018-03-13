@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <Accelerate/Accelerate.h>
 #include "SFM.hpp"
+#include "LBQ.hpp"
 
 #define FS 44100
 
@@ -95,28 +96,36 @@ int main(int argc, char* argv[])
 {
     //number of repetition to generate IR
     int iteration = 10;
-    
+
     // Take 3 seconds of lossless FDN output:  44100 * 3 = 132300
     // Length of signal must be power of 2 for FFT in SFM.cpp
     // Nearest power of 2 to 132300 is 2^17 = 131072
     // So set impulseLength (in samples) to 131072
-    
-    int impulseLength = 128; // changed to smaller value for testing
-    
+
+    int impulseLength = 16; // changed to smaller value for testing
+    int lags = 4;
+
     bool powerOfTwo = !(impulseLength==0) && !(impulseLength & (impulseLength-1));
     assert(powerOfTwo == true);
 
     float* output = (float*) malloc(impulseLength*sizeof(float));
     SFM sfm = SFM(impulseLength);
-    
+    LBQ lbq_test = LBQ(impulseLength, lags);
+
     float* SFM_output = (float*) malloc(impulseLength*sizeof(float));
+    float* LBQ_output = (float*) malloc(impulseLength*sizeof(float));
     for (int i = 0 ; i<iteration ; i++){
 
         memset(output, 0, impulseLength*sizeof(float));
         impulseResponse(16, impulseLength, output,1);
+        
+//        for (int i = 0; i<impulseLength; i++) std::cout << output[i] << " ";
 
         SFM_output[i] = sfm.spectral_flatness_value(output);
-        printf("SFM %i: %f \n", i, SFM_output[i]);
+        LBQ_output[i] = lbq_test.LBQtest(output);
+        
+        printf("Iteration %i : ", i );
+        printf("SFM : %f LBQ : %f \n", SFM_output[i], LBQ_output[i]);
     }
     
 }

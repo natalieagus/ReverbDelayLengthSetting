@@ -21,6 +21,9 @@ SFM::SFM(size_t N){
     this->x_ptr_complex = (float*) malloc(N*sizeof(float)*2);
     // create power spectra array
     this->power_spectra = (float*) malloc(N*sizeof(float));
+    // create input copy array
+    this->input = (float*) malloc(N*sizeof(float));
+    
     
     // create input and output complex array for fft with size 2N (for Re and Im each)
     this->inputMemory = (float*) malloc(N*sizeof(float)*2);
@@ -33,12 +36,12 @@ SFM::SFM(size_t N){
     this->outputSplit.imagp = outputMemory+N;
 
     
-    clear_all();
+    reset();
 
     
 }
 
-void SFM::clear_all(){
+void SFM::reset(){
     memset(x_ptr_complex, 0, this->sequence_length*sizeof(float)*2);
     memset(power_spectra, 0, this->sequence_length*sizeof(float));
     memset(inputMemory, 0, this->sequence_length*sizeof(float)*2);
@@ -46,7 +49,8 @@ void SFM::clear_all(){
 }
 
 void SFM::convert_real_to_complex(float* x){
-    vDSP_vswap(x, 1, x_ptr_complex, 2, sequence_length);
+    memcpy(input, x, sequence_length);
+    vDSP_vswap(input, 1, x_ptr_complex, 2, sequence_length);
 }
 
 
@@ -130,7 +134,7 @@ float SFM::spectral_flatness_value(float* x){
     printf("\n Geometric mean : %f ", SFM_numerator);
     printf("\n Arithmetic mean: %f \n", SFM_denominator);
     
-    clear_all();
+    reset();
     
     return SFM_numerator/SFM_denominator;
     

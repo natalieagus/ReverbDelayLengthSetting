@@ -26,6 +26,7 @@ public:
     
 private:
     
+    float* input;
     // pointer to complex form array {{re, im}, {re, im}, ... }
     float* x_ptr_complex;
     
@@ -50,7 +51,7 @@ private:
     // perform FFT on input in DSP complex form : (DSPComplex*) x_ptr_complex
     void fft(DSPComplex input[]);
     
-    void clear_all();
+    void reset();
     
 };
 
