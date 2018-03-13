@@ -8,7 +8,6 @@
 #include <fstream>
 #include <cstdint>
 #include "assert.h"
-#include <stdio.h>
 #include <Accelerate/Accelerate.h>
 #include "SFM.hpp"
 #include "LBQ.hpp"
@@ -119,7 +118,7 @@ int main(int argc, char* argv[])
         memset(output, 0, impulseLength*sizeof(float));
         impulseResponse(16, impulseLength, output,1);
         
-//        for (int i = 0; i<impulseLength; i++) std::cout << output[i] << " ";
+//        for (int i = 0; i<impulseLength; i++) printf("%f ", output[i]);
 
         SFM_output[i] = sfm.spectral_flatness_value(output);
         LBQ_output[i] = lbq_test.LBQtest(output);

@@ -8,6 +8,8 @@
 
 #include "SFM.hpp"
 
+
+
 SFM::SFM(size_t N){
 
     printf("\n \n SFM class instantiated\n");
@@ -52,8 +54,31 @@ void SFM::reset(){
 }
 
 void SFM::convert_real_to_complex(float* x){
-    memcpy(input, x, sequence_length);
+    memcpy(input, x, sequence_length*sizeof(float));
+    
+//    printf("\n sequence Length : %zu", sequence_length);
+//
+//    printf("\n Signal: \n");
+//    for (int i = 0; i<sequence_length; i++){
+//        printf(" %f " , x[i]);
+//    }
+//
+//    printf("\n Signal copied: \n");
+//    for (int i = 0; i<sequence_length; i++){
+//        printf(" %f " , input[i]);
+//    }
+//
+    
     vDSP_vswap(input, 1, x_ptr_complex, 2, sequence_length);
+    
+//    printf("\n Signal: \n");
+//    for (int i = 0; i<sequence_length*2; i++){
+//        printf("{Re: %f, Im : %f}, \n ", x_ptr_complex[i], x_ptr_complex[i+1]);
+//        i ++;
+//    }
+//
+    
+    
 }
 
 
