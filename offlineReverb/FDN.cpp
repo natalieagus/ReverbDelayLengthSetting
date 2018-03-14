@@ -13,8 +13,11 @@
 #include <assert.h>
 #include <cstdlib>
 #include <ctime>
-#define M_E 2.71828182845904523536
+#include "primes.h"
+//#define M_E 2.71828182845904523536
 #define DENSITY_WINDOW_SIZE 882 // 20.0 * (44100.0 / 1000.0); (20 ms)
+#define RV_MIN_DELAY_TIME 40
+#define RV_MAX_DELAY_TIME 100
 
 //#include <iostream>
 
@@ -27,9 +30,9 @@ void FDN::setDelayTime(int delayType){
     switch(delayType){
         
             //continue adding cases here
-        case DelayTimeAlgorithm::velvetNoise: setDelayTimesVelvet();
+        case DelayTimeAlgorithm::velvetNoise: setDelayTimesVelvetNoise();
             
-        default:setDelayTimesVelvet();
+        default:setDelayTimesVelvetNoise();
     }
 }
 
@@ -417,8 +420,8 @@ void FDN::setDelayTimesVelvetNoise(){
     // generate randomised delay tap outputs. See (http://users.spa.aalto.fi/mak/PUB/AES_Jarvelainen_velvet.pdf)
     //    float maxDelayTime = 0.100f * 44100.0f;
     //    float minDelayTime = 0.007f * 44100.0f;
-    float minDelayTime = 4.f;
-    float maxDelayTime = 10.f;
+    float minDelayTime = RV_MIN_DELAY_TIME;
+    float maxDelayTime = RV_MAX_DELAY_TIME;
     
     float outTapSpacing = (float)(maxDelayTime - minDelayTime) / (float)numDelays;
     randomSeed = std::rand() ;
@@ -446,28 +449,23 @@ void FDN::setDelayTimesVelvetNoise(){
 
 
 
+// set even spacing and then find the nearest prime numbers to that.
 void FDN::setDelayTimesVelvetPrime(){
     
-    // generate randomised delay tap outputs. See (http://users.spa.aalto.fi/mak/PUB/AES_Jarvelainen_velvet.pdf)
-    //    float maxDelayTime = 0.100f * 44100.0f;
-    //    float minDelayTime = 0.007f * 44100.0f;
-    float minDelayTime = 4.f;
-    float maxDelayTime = 10.f;
+    float minDelayTime = RV_MIN_DELAY_TIME;
+    float maxDelayTime = RV_MAX_DELAY_TIME;
     
+    // find the appropriate spacing to make evenly spaced delay times
     float outTapSpacing = (float)(maxDelayTime - minDelayTime) / (float)numDelays;
-    randomSeed = std::rand() ;
-    updateRand();
+
     // Set output tap times
     totalDelayTime = 0;
     
     
-    
-    float scale = 1.0;
+    // set delay times to the nearest prime number to even spacing
     for (int i = 0; i < numDelays; i++){
-        delayTimes[i] = minDelayTime + outTapSpacing*((float)i + 0.5f);
-        float jitter = ((float)randomSeed / (float)RAND_MAX) * (outTapSpacing);
-        delayTimes[i] += jitter;
-        delayTimes[i] *= scale;
+        delayTimes[i] = minDelayTime + outTapSpacing*(float)i;
+        delayTimes[i] = RV_nearestPrime(delayTimes[i]);
         totalDelayTime += delayTimes[i];
     }
     
