@@ -24,12 +24,14 @@
 #define NUMDELAYSEXT 1024
 #define AUDIOCHANNELS 1
 
+enum DelayTimeAlgorithm {velvetNoise, velvetPrime, primePrime, randomSimple, randomPrime};
+
 class FDN
 {
 public:
     // constructor
     FDN();
-    FDN(int type, int delaySetting);
+    FDN(int type, DelayTimeAlgorithm algo);
     void setDecayTime(double rt60);
     ~FDN();
     
@@ -76,7 +78,8 @@ protected:
     void setDelayTime(int delayType);
     
     // Delay time setting methods
-    void setDelayTimesVelvet();
+    void setDelayTimesVelvetNoise();
+    void setDelayTimesVelvetPrime();
     
     
     int rvType, numDelays;

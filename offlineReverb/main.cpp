@@ -11,6 +11,7 @@
 #include <Accelerate/Accelerate.h>
 #include "SFM.hpp"
 #include "LBQ.hpp"
+#include "primes.h"
 
 #define FS 44100
 
@@ -25,8 +26,8 @@ using namespace std;
 // samples      : length of IR in samples
 // delaySetting : delay setting type (see setDelayTime method in FDN.cpp), e.g: 1 is velvet delay line method
 // output       : IR output
-void impulseResponse(int type, int samples, float* output, int delaySetting){
-    FDN reverb = FDN(type,1);
+void impulseResponse(int type, int samples, float* output, DelayTimeAlgorithm algo){
+    FDN reverb = FDN(type,algo);
     reverb.impulseResponse_output(samples, output);
     
 }
@@ -55,7 +56,7 @@ void saveImpulseMultiple(int type, int samples, int times){
         
         ofL->open(filenameL);
         
-        FDN reverb = FDN(type,1);
+        FDN reverb = FDN(type,DelayTimeAlgorithm::velvetNoise);
         reverb.impulseResponse_write(samples, ofL);
         
         std::cout << "impulse saved for type " << type << ".\n";
@@ -81,7 +82,7 @@ void saveImpulse(int type, int samples){
     
     
     
-    FDN reverb = FDN(type,1);
+    FDN reverb = FDN(type,DelayTimeAlgorithm::velvetNoise);
     reverb.impulseResponse_write(samples, ofL);
     
     std::cout << "impulse saved for type " << type << ".\n";
@@ -101,7 +102,7 @@ int main(int argc, char* argv[])
     // Nearest power of 2 to 132300 is 2^17 = 131072
     // So set impulseLength (in samples) to 131072
 
-    int impulseLength = 8; // changed to smaller value for testing
+    int impulseLength = 4096; // changed to smaller value for testing
     int lags = 2;
 
     bool powerOfTwo = !(impulseLength==0) && !(impulseLength & (impulseLength-1));
@@ -117,9 +118,11 @@ int main(int argc, char* argv[])
     for (int i = 0 ; i<iteration ; i++){
 
         memset(output, 0, impulseLength*sizeof(float));
-        impulseResponse(16, impulseLength, output,1);
+        impulseResponse(16, impulseLength, output,DelayTimeAlgorithm::velvetPrime);
         
-        for (int i = 0; i<impulseLength; i++) printf("%f ", output[i]);
+//        printf("{");
+//        for (int i = 0; i<impulseLength-1; i++) printf("%f ,", output[i]);
+//        printf("%f}", output[impulseLength-1]);
 
         SFM_output[i] = sfm.spectral_flatness_value(output);
         LBQ_output[i] = lbq_test.LBQtest(output);
