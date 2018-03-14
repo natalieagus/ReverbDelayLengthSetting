@@ -138,8 +138,8 @@ float SFM::spectral_flatness_value(float* x){
     fft((DSPComplex*)x_ptr_complex);
     
     printf("\n FFT result: \n");
-    for (int i = 0; i<sequence_length; i++){
-        printf("{Re: %f, Im : %f}, \n ", outputSplit.realp[i], outputSplit.imagp[i]);
+    for (int i = 0; i<sequence_length/2; i++){
+        printf("{Re: %f, Im : %f}, \n ", inputSplit.realp[i], inputSplit.imagp[i]);
     }
     
 //    printf("\n FFT result: \n");
@@ -149,14 +149,14 @@ float SFM::spectral_flatness_value(float* x){
 //
     assert(sequence_length%2 == 0);
     
-    vDSP_zvabs(&this->outputSplit, 1, power_spectra, 1, sequence_length/2+1);
+    vDSP_zvabs(&this->inputSplit, 1, power_spectra, 1, sequence_length/2);
     
 //    printf("\n Magnitude spectra: ");
 //    for (int i = 0; i<sequence_length/2+1; i++){
 //        printf("%f,  ", power_spectra[i]);
 //    }
 
-    vDSP_vsq(power_spectra, 1, power_spectra, 1, sequence_length/2+1);
+    vDSP_vsq(power_spectra, 1, power_spectra, 1, sequence_length/2);
     
 //    printf("\n Power spectra: ");
 //    for (int i = 0; i<sequence_length/2+1; i++){
