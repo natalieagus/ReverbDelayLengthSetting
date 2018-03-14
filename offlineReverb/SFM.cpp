@@ -164,18 +164,18 @@ float SFM::spectral_flatness_value(float* x){
     DSPSplitComplex* fftResult = &inputSplit;
     
     // print the FFT output
-    printf("\n FFT result: \n");
-    for (int i = 0; i<outputLength; i++){
-        printf("{Re: %f, Im : %f}, \n ", fftResult->realp[i], fftResult->imagp[i]);
-    }
+//    printf("\n FFT result: \n");
+//    for (int i = 0; i<outputLength; i++){
+//        printf("{Re: %f, Im : %f}, \n ", fftResult->realp[i], fftResult->imagp[i]);
+//    }
     
     correctDCNyquist_zripPacked(fftResult);
     
     // print the FFT output after correcting the DC / Nyquist PDF
-    printf("\n FFT result: \n");
-    for (int i = 0; i<outputLength; i++){
-        printf("{Re: %f, Im : %f}, \n ", fftResult->realp[i], fftResult->imagp[i]);
-    }
+//    printf("\n FFT result: \n");
+//    for (int i = 0; i<outputLength; i++){
+//        printf("{Re: %f, Im : %f}, \n ", fftResult->realp[i], fftResult->imagp[i]);
+//    }
     
 //    printf("\n FFT result: \n");
 //    for (int i = 0; i<outputLength; i++){
