@@ -95,9 +95,9 @@ inline void SFM::fft(DSPComplex input[]) {
 //
     
     //using out of place fft
-    vDSP_fft_zop(setup_fft, &inputSplit, 1, &outputSplit, 1, log2(this->sequence_length), FFT_FORWARD);
+    //vDSP_fft_zop(setup_fft, &inputSplit, 1, &outputSplit, 1, log2(this->sequence_length), FFT_FORWARD);
     //inplace fft below, doesn't seem to work
-    //vDSP_fft_zrip(setup_fft, &inputSplit, 1, log2(this->sequence_length), FFT_FORWARD);
+    vDSP_fft_zrip(setup_fft, &inputSplit, 1, log2(this->sequence_length), FFT_FORWARD);
 }
 
 // Geometric mean computation using split exponent and mantissa
