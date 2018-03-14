@@ -143,7 +143,7 @@ float SFM::geometric_mean(float* data, size_t N)
 // see our paper titled
 // The Probability Density Function of the Spectral Flatness Measure
 // for an explanation.
-void correctDCNyquistZripPacked(DSPSplitComplex* fftZripOutput){
+void correctDCNyquist_zripPacked(DSPSplitComplex* fftZripOutput){
     // divide the real and imaginary parts of the zero element by sqrt(2)
     fftZripOutput->realp[0] *= M_SQRT1_2;
     fftZripOutput->imagp[0] *= M_SQRT1_2;
@@ -164,7 +164,7 @@ float SFM::spectral_flatness_value(float* x){
         printf("{Re: %f, Im : %f}, \n ", fftResult->realp[i], fftResult->imagp[i]);
     }
     
-    correctDCNyquistZripPacked(fftResult);
+    correctDCNyquist_zripPacked(fftResult);
     
     // print the FFT output after correcting the DC / Nyquist PDF
     printf("\n FFT result: \n");
