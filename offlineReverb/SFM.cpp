@@ -21,7 +21,7 @@ SFM::SFM(size_t N){
     
     // initialize the setup struct
 //    this->setup = vDSP_DFT_zop_CreateSetup(NULL, this->sequence_length, vDSP_DFT_FORWARD);
-    this->setup_fft = vDSP_create_fftsetup(log2(this->sequence_length), kFFTRadix5);
+    this->setup_fft = vDSP_create_fftsetup(log2(this->sequence_length), kFFTRadix2);
 
     
     // create complex array with size of 2N (for Re and Im each)
