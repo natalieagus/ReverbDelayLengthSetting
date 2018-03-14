@@ -50,8 +50,8 @@ private:
     // e.g: x = {1,2,3,4}, x_ptr_complex = {{1,0}, {2,0}, {3,0}, {4,0}}
     void convert_real_to_complex(float* x);
     
-    // perform FFT on input in DSP complex form : (DSPComplex*) x_ptr_complex
-    void fft(DSPComplex input[], size_t* outputLength);
+    // perform FFT on input
+    void fft(float* input, size_t* outputLength);
     
     void reset();
     
