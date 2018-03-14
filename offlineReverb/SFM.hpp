@@ -51,7 +51,7 @@ private:
     void convert_real_to_complex(float* x);
     
     // perform FFT on input in DSP complex form : (DSPComplex*) x_ptr_complex
-    void fft(DSPComplex input[]);
+    void fft(DSPComplex input[], size_t* outputLength);
     
     void reset();
     

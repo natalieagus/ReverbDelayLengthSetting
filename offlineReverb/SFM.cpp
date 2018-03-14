@@ -84,7 +84,7 @@ void SFM::convert_real_to_complex(float* x){
 }
 
 
-inline void SFM::fft(DSPComplex input[]) {
+inline void SFM::fft(DSPComplex input[], size_t* outputLength) {
 
     vDSP_ctoz(input, 2, &inputSplit, 1, this->sequence_length);
     
@@ -94,10 +94,13 @@ inline void SFM::fft(DSPComplex input[]) {
 //                     outputSplit.realp, outputSplit.imagp);
 //
     
-    //using out of place fft
-    //vDSP_fft_zop(setup_fft, &inputSplit, 1, &outputSplit, 1, log2(this->sequence_length), FFT_FORWARD);
-    //inplace fft below, doesn't seem to work
+    // using out of place fft
+    // vDSP_fft_zop(setup_fft, &inputSplit, 1, &outputSplit, 1, log2(this->sequence_length), FFT_FORWARD);
+    // *outputLength = (sequence_length/2) + 1;
+    
+    // in place fft for real valued input
     vDSP_fft_zrip(setup_fft, &inputSplit, 1, log2(this->sequence_length), FFT_FORWARD);
+    *outputLength = sequence_length/2;
 }
 
 // Geometric mean computation using split exponent and mantissa
@@ -149,14 +152,15 @@ void correctDCNyquistZripPacked(DSPSplitComplex* fftZripOutput){
 
 float SFM::spectral_flatness_value(float* x){
     convert_real_to_complex(x);
-    fft((DSPComplex*)x_ptr_complex);
+    size_t outputLength;
+    fft((DSPComplex*)x_ptr_complex, &outputLength);
     
     // create a pointer as an alias to the output of the fft (for readability)
     DSPSplitComplex* fftResult = &inputSplit;
     
     // print the FFT output
     printf("\n FFT result: \n");
-    for (int i = 0; i<sequence_length/2; i++){
+    for (int i = 0; i<outputLength; i++){
         printf("{Re: %f, Im : %f}, \n ", fftResult->realp[i], fftResult->imagp[i]);
     }
     
@@ -164,28 +168,28 @@ float SFM::spectral_flatness_value(float* x){
     
     // print the FFT output after correcting the DC / Nyquist PDF
     printf("\n FFT result: \n");
-    for (int i = 0; i<sequence_length/2; i++){
+    for (int i = 0; i<outputLength; i++){
         printf("{Re: %f, Im : %f}, \n ", fftResult->realp[i], fftResult->imagp[i]);
     }
     
 //    printf("\n FFT result: \n");
-//    for (int i = 0; i<sequence_length; i++){
+//    for (int i = 0; i<outputLength; i++){
 //        printf("{Re: %f, Im : %f}, \n ", fftResult->realp[i], fftResult->imagp[i]);
 //    }
 //
     assert(sequence_length%2 == 0);
     
-    vDSP_zvabs(fftResult, 1, power_spectra, 1, sequence_length/2);
+    vDSP_zvabs(fftResult, 1, power_spectra, 1, outputLength);
     
 //    printf("\n Magnitude spectra: ");
-//    for (int i = 0; i<sequence_length/2+1; i++){
+//    for (int i = 0; i<outputLength; i++){
 //        printf("%f,  ", power_spectra[i]);
 //    }
 
-    vDSP_vsq(power_spectra, 1, power_spectra, 1, sequence_length/2);
+    vDSP_vsq(power_spectra, 1, power_spectra, 1, outputLength);
     
 //    printf("\n Power spectra: ");
-//    for (int i = 0; i<sequence_length/2+1; i++){
+//    for (int i = 0; i<outputLength; i++){
 //        printf("%f,  ", power_spectra[i]);
 //    }
 //
@@ -194,8 +198,8 @@ float SFM::spectral_flatness_value(float* x){
     float SFM_numerator = 0.0f;
     float SFM_denominator = 0.0f;
     
-    SFM_numerator = geometric_mean(power_spectra, sequence_length/2+1);
-    vDSP_meanv(power_spectra, 1, &SFM_denominator, sequence_length/2+1);
+    SFM_numerator = geometric_mean(power_spectra, outputLength);
+    vDSP_meanv(power_spectra, 1, &SFM_denominator, outputLength);
 
     printf("\n Geometric mean : %f ", SFM_numerator);
     printf("\n Arithmetic mean: %f \n", SFM_denominator);
