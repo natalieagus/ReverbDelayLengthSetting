@@ -118,12 +118,11 @@ int main(int argc, char* argv[])
     for (int i = 0 ; i<iteration ; i++){
 
         memset(output, 0, impulseLength*sizeof(float));
-        impulseResponse(16, impulseLength, output,DelayTimeAlgorithm::velvetNoise);
         impulseResponse(16, impulseLength, output,DelayTimeAlgorithm::velvetPrime);
         
-        printf("{");
-        for (int i = 0; i<impulseLength-1; i++) printf("%f ,", output[i]);
-        printf("%f}", output[impulseLength-1]);
+//        printf("{");
+//        for (int i = 0; i<impulseLength-1; i++) printf("%f ,", output[i]);
+//        printf("%f}", output[impulseLength-1]);
 
         SFM_output[i] = sfm.spectral_flatness_value(output);
         LBQ_output[i] = lbq_test.LBQtest(output);
