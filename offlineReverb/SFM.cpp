@@ -132,24 +132,50 @@ float SFM::geometric_mean(float* data, size_t N)
     return std::pow( std::numeric_limits<float>::radix,ex * invN ) * m;
 }
 
+// correct the DC and Nyquist terms to follow the same probability
+// density function as the complex terms, for the vDSP_fft_zrip
+// packing that packs DC and Nyquist together in the zero position
+// of the array
+//
+// see our paper titled
+// The Probability Density Function of the Spectral Flatness Measure
+// for an explanation.
+void correctDCNyquistZripPacked(DSPSplitComplex* fftZripOutput){
+    // divide the real and imaginary parts of the zero element by sqrt(2)
+    fftZripOutput->realp[0] *= M_SQRT1_2;
+    fftZripOutput->imagp[0] *= M_SQRT1_2;
+}
+
 
 float SFM::spectral_flatness_value(float* x){
     convert_real_to_complex(x);
     fft((DSPComplex*)x_ptr_complex);
     
+    // create a pointer as an alias to the output of the fft (for readability)
+    DSPSplitComplex* fftResult = &inputSplit;
+    
+    // print the FFT output
     printf("\n FFT result: \n");
     for (int i = 0; i<sequence_length/2; i++){
-        printf("{Re: %f, Im : %f}, \n ", inputSplit.realp[i], inputSplit.imagp[i]);
+        printf("{Re: %f, Im : %f}, \n ", fftResult->realp[i], fftResult->imagp[i]);
+    }
+    
+    correctDCNyquistZripPacked(fftResult);
+    
+    // print the FFT output after correcting the DC / Nyquist PDF
+    printf("\n FFT result: \n");
+    for (int i = 0; i<sequence_length/2; i++){
+        printf("{Re: %f, Im : %f}, \n ", fftResult->realp[i], fftResult->imagp[i]);
     }
     
 //    printf("\n FFT result: \n");
 //    for (int i = 0; i<sequence_length; i++){
-//        printf("{Re: %f, Im : %f}, \n ", inputSplit.realp[i], inputSplit.imagp[i]);
+//        printf("{Re: %f, Im : %f}, \n ", fftResult->realp[i], fftResult->imagp[i]);
 //    }
 //
     assert(sequence_length%2 == 0);
     
-    vDSP_zvabs(&this->inputSplit, 1, power_spectra, 1, sequence_length/2);
+    vDSP_zvabs(fftResult, 1, power_spectra, 1, sequence_length/2);
     
 //    printf("\n Magnitude spectra: ");
 //    for (int i = 0; i<sequence_length/2+1; i++){
