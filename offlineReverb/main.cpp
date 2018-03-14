@@ -25,8 +25,8 @@ using namespace std;
 // samples      : length of IR in samples
 // delaySetting : delay setting type (see setDelayTime method in FDN.cpp), e.g: 1 is velvet delay line method
 // output       : IR output
-void impulseResponse(int type, int samples, float* output, int delaySetting){
-    FDN reverb = FDN(type,1);
+void impulseResponse(int type, int samples, float* output, DelayTimeAlgorithm algo){
+    FDN reverb = FDN(type,algo);
     reverb.impulseResponse_output(samples, output);
     
 }
@@ -55,7 +55,7 @@ void saveImpulseMultiple(int type, int samples, int times){
         
         ofL->open(filenameL);
         
-        FDN reverb = FDN(type,1);
+        FDN reverb = FDN(type,DelayTimeAlgorithm::velvetNoise);
         reverb.impulseResponse_write(samples, ofL);
         
         std::cout << "impulse saved for type " << type << ".\n";
@@ -81,7 +81,7 @@ void saveImpulse(int type, int samples){
     
     
     
-    FDN reverb = FDN(type,1);
+    FDN reverb = FDN(type,DelayTimeAlgorithm::velvetNoise);
     reverb.impulseResponse_write(samples, ofL);
     
     std::cout << "impulse saved for type " << type << ".\n";
@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
     for (int i = 0 ; i<iteration ; i++){
 
         memset(output, 0, impulseLength*sizeof(float));
-        impulseResponse(16, impulseLength, output,1);
+        impulseResponse(16, impulseLength, output,DelayTimeAlgorithm::velvetNoise);
         
         printf("{");
         for (int i = 0; i<impulseLength-1; i++) printf("%f ,", output[i]);

@@ -27,7 +27,7 @@ void FDN::setDelayTime(int delayType){
     switch(delayType){
         
             //continue adding cases here
-        case 1: setDelayTimesVelvet();
+        case DelayTimeAlgorithm::velvetNoise: setDelayTimesVelvet();
             
         default:setDelayTimesVelvet();
     }
@@ -38,13 +38,13 @@ FDN::~FDN(){
     if (delayBuffers) delete[] delayBuffers;
 }
 
-FDN::FDN(int rvType, int delaySetting)
+FDN::FDN(int rvType, DelayTimeAlgorithm algo)
 {
     this->rvType = rvType;
     
     numDelays = abs(rvType);
     
-    setDelayTime(delaySetting);
+    setDelayTime(algo);
     
     
     vDSP_sve((float*) delayTimes, 1, (float*) &totalDelayTime, numDelays);
@@ -412,7 +412,41 @@ void FDN::setDecayTime(double rt60){
 
 // Methods for setting delay times
 
-void FDN::setDelayTimesVelvet(){
+void FDN::setDelayTimesVelvetNoise(){
+    
+    // generate randomised delay tap outputs. See (http://users.spa.aalto.fi/mak/PUB/AES_Jarvelainen_velvet.pdf)
+    //    float maxDelayTime = 0.100f * 44100.0f;
+    //    float minDelayTime = 0.007f * 44100.0f;
+    float minDelayTime = 4.f;
+    float maxDelayTime = 10.f;
+    
+    float outTapSpacing = (float)(maxDelayTime - minDelayTime) / (float)numDelays;
+    randomSeed = std::rand() ;
+    updateRand();
+    // Set output tap times
+    totalDelayTime = 0;
+    
+    
+    
+    float scale = 1.0;
+    for (int i = 0; i < numDelays; i++){
+        delayTimes[i] = minDelayTime + outTapSpacing*((float)i + 0.5f);
+        float jitter = ((float)randomSeed / (float)RAND_MAX) * (outTapSpacing);
+        delayTimes[i] += jitter;
+        delayTimes[i] *= scale;
+        totalDelayTime += delayTimes[i];
+    }
+    
+    
+    
+    // randomly shuffle the order of delay times in the array
+    randomPermutation1Channel(delayTimes, numDelays, 1);
+    
+}
+
+
+
+void FDN::setDelayTimesVelvetPrime(){
     
     // generate randomised delay tap outputs. See (http://users.spa.aalto.fi/mak/PUB/AES_Jarvelainen_velvet.pdf)
     //    float maxDelayTime = 0.100f * 44100.0f;
