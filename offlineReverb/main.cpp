@@ -119,6 +119,7 @@ int main(int argc, char* argv[])
 
         memset(output, 0, impulseLength*sizeof(float));
         impulseResponse(16, impulseLength, output,DelayTimeAlgorithm::velvetNoise);
+        impulseResponse(16, impulseLength, output,DelayTimeAlgorithm::velvetPrime);
         
         printf("{");
         for (int i = 0; i<impulseLength-1; i++) printf("%f ,", output[i]);
