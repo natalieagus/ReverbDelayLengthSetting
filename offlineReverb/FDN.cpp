@@ -428,7 +428,7 @@ void FDN::setDelayTimesVelvetNoise(){
 //    float maxDelayTime = RV_MAX_DELAY_TIME;
     
         float minDelayTime = 2;
-        float maxDelayTime = 1;
+        float maxDelayTime = 10;
     
     
     float outTapSpacing = (float)(maxDelayTime - minDelayTime) / (float)numDelays;

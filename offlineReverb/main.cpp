@@ -95,7 +95,7 @@ void saveImpulse(int type, int samples){
 int main(int argc, char* argv[])
 {
     //number of repetition to generate IR
-    int iteration = 10;
+    int iteration = 3;
 
     // Take 3 seconds of lossless FDN output:  44100 * 3 = 132300
     // Length of signal must be power of 2 for FFT in SFM.cpp
@@ -103,6 +103,7 @@ int main(int argc, char* argv[])
     // So set impulseLength (in samples) to 131072
 
     int impulseLength = 32; // changed to smaller value for testing
+    int windowLength = 8;
     int lags = 2;
 
     bool powerOfTwo = !(impulseLength==0) && !(impulseLength & (impulseLength-1));
@@ -114,12 +115,19 @@ int main(int argc, char* argv[])
 
     float* SFM_output = (float*) malloc(iteration*sizeof(float));
     float* LBQ_output = (float*) malloc(iteration*sizeof(float));
-    
+    float* mean_SFM = (float*) malloc(iteration*sizeof(float));
+    float* stdev_SFM = (float*) malloc(iteration*sizeof(float));
+ 
+    float** SFM_output_window_array = (float**) malloc(iteration*sizeof(float*));
+    for (int i=0; i<iteration; i++)
+        SFM_output_window_array[i] = (float *)malloc(impulseLength/windowLength * sizeof(float));
+
     for (int i = 0 ; i<iteration ; i++){
 
         memset(output, 0, impulseLength*sizeof(float));
-        impulseResponse(16, impulseLength, output,DelayTimeAlgorithm::velvetPrime1);
+        impulseResponse(16, impulseLength, output,DelayTimeAlgorithm::velvetNoise);
         
+//         for printing signal
 //        printf("{");
 //        for (int i = 0; i<impulseLength-1; i++) printf("%f ,", output[i]);
 //        printf("%f}", output[impulseLength-1]);
@@ -127,8 +135,18 @@ int main(int argc, char* argv[])
         SFM_output[i] = sfm.spectral_flatness_value(output);
         LBQ_output[i] = lbq_test.LBQtest(output);
         
+        sfm.spectral_flatness_value_array(output, SFM_output_window_array[i], windowLength);
+        
+        
+        printf("\n");
+        for (int k=0; k<impulseLength/windowLength; k++) printf("%f , ", SFM_output_window_array[i][k]);
+        printf("\n");
+        
+        vDSP_normalize(SFM_output_window_array[i], 1, NULL, 1, &mean_SFM[i], &stdev_SFM[i], impulseLength/windowLength);
+    
+        
         printf("Iteration %i : ", i );
-        printf("SFM : %f LBQ : %f \n", SFM_output[i], LBQ_output[i]);
+        printf("SFM : %f LBQ : %f mean_SFM: %f stdev_SFM: %f \n", SFM_output[i], LBQ_output[i], mean_SFM[i], stdev_SFM[i]);
     }
     
 }

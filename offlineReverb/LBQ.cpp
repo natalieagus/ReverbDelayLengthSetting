@@ -78,7 +78,7 @@ float LBQ::LBQtest(float* x){
 //        printf("Q %i : %f \n", i, *(temp+i));
 //        //        std::cout << output[i] << "\n";
 //    }
-    
+//    
     //get Q-value
     vDSP_sve(temp, 1, &Q_val, m);
     

@@ -14,6 +14,7 @@ SFM::SFM(size_t N){
 
     printf("\n \n SFM class instantiated\n");
     
+    // sequence length has to be power of two
     bool powerOfTwo = !(N==0) && !(N & (N-1));
     assert(powerOfTwo == true);
     
@@ -84,12 +85,12 @@ void SFM::convert_real_to_complex(float* x){
 }
 
 
-inline void SFM::fft(float* input, size_t* outputLength) {
+inline void SFM::fft(float* input, size_t* outputLength, size_t inputLength) {
 
 //    for (int i = 0; i<sequence_length; i++) printf("%f ,", input[i]);
 
     
-    vDSP_ctoz((DSPComplex*) input, 2, &inputSplit, 1, this->sequence_length/2);
+    vDSP_ctoz((DSPComplex*) input, 2, &inputSplit, 1, inputLength/2);
     
 //    for (int i = 0; i<sequence_length; i++){
 //        printf("{ %f , %f } , ", inputSplit.realp[i], inputSplit.imagp[i]);
@@ -112,8 +113,8 @@ inline void SFM::fft(float* input, size_t* outputLength) {
     // *outputLength = (sequence_length/2) + 1;
     
     // in place fft for real valued input
-    vDSP_fft_zrip(setup_fft, &inputSplit, 1, log2(this->sequence_length), FFT_FORWARD);
-    *outputLength = sequence_length/2;
+    vDSP_fft_zrip(setup_fft, &inputSplit, 1, log2(inputLength), FFT_FORWARD);
+    *outputLength = inputLength/2;
 }
 
 // Geometric mean computation using split exponent and mantissa
@@ -163,11 +164,19 @@ void correctDCNyquist_zripPacked(DSPSplitComplex* fftZripOutput){
 }
 
 
-float SFM::spectral_flatness_value(float* x){
+float SFM::compute_spectral_flatness_value(float* x, size_t length){
+    
+    
+////         print the input signal
+//        printf("\n Input Signal: \n");
+//        for (int i = 0; i<length; i++){
+//            printf("%f, ", *(x + i));
+//        }
+    
     //convert_real_to_complex(x);
     size_t outputLength;
     
-    fft(x, &outputLength);
+    fft(x, &outputLength, length);
     
     // create a pointer as an alias to the output of the fft (for readability)
     DSPSplitComplex* fftResult = &inputSplit;
@@ -221,5 +230,22 @@ float SFM::spectral_flatness_value(float* x){
     reset();
     
     return SFM_numerator/SFM_denominator;
+}
+
+
+float SFM::spectral_flatness_value(float* x){
+    return compute_spectral_flatness_value(x, this->sequence_length);
+}
+
+
+void SFM::spectral_flatness_value_array(float *x, float *SFM_array, int n){
+    
+    // n has to be power of two
+    bool powerOfTwo = !(n==0) && !(n & (n-1));
+    assert(powerOfTwo == true);
+    
+    for (int i = 0; i<(this->sequence_length/n); i++){
+        SFM_array[i] = compute_spectral_flatness_value((x+(i*n)), n);
+    }
     
 }

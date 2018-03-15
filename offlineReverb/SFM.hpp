@@ -19,9 +19,13 @@ public:
     //constructor
     SFM(size_t N);
     
+    // computes SFM value for entire sample
     // x        : time samples
     // returns  : SFM value
     float spectral_flatness_value(float* x);
+    
+    // get an array of SFM values from samples with size 'n' each on input x
+    void spectral_flatness_value_array(float* x, float* SFM_array, int n);
     
     
 private:
@@ -48,11 +52,16 @@ private:
     // Convert real input sequence x into complex form, stored in x_ptr_complex
     // Imaginary part is always zero
     // e.g: x = {1,2,3,4}, x_ptr_complex = {{1,0}, {2,0}, {3,0}, {4,0}}
+    // This is required only if vDSP_DFT is used in fft()
     void convert_real_to_complex(float* x);
     
     // perform FFT on input
-    void fft(float* input, size_t* outputLength);
+    void fft(float* input, size_t* outputLength, size_t inputLength);
     
+    // computes SFM value
+    float compute_spectral_flatness_value(float* x, size_t samples_length);
+    
+    // clear buffers
     void reset();
     
 };
