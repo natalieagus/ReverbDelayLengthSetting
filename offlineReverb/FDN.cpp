@@ -644,7 +644,7 @@ void FDN::setDelayTimesRandomPrime(){
     
     for (int i = 0; i < numDelays; i++){
         // generate a random delay time in the specified range
-        int nextDelayTime = randInRange(RV_MIN_DELAY_TIME, RV_MAX_DELAY_TIME);
+        int nextDelayTime = randPrimeInRange(RV_MIN_DELAY_TIME, RV_MAX_DELAY_TIME);
         
         // because we are not allowing duplicate delay times, we need to
         // ensure that the range is sufficiently wide so that it is possible
