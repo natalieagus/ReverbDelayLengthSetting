@@ -17,7 +17,7 @@
 //#define M_E 2.71828182845904523536
 #define DENSITY_WINDOW_SIZE 882 // 20.0 * (44100.0 / 1000.0); (20 ms)
 #define RV_MIN_DELAY_TIME 40
-#define RV_MAX_DELAY_TIME 100
+#define RV_MAX_DELAY_TIME 200
 
 //#include <iostream>
 
@@ -30,7 +30,11 @@ void FDN::setDelayTime(int delayType){
     switch(delayType){
         
             //continue adding cases here
-        case DelayTimeAlgorithm::velvetNoise: setDelayTimesVelvetNoise();
+        case DelayTimeAlgorithm::velvetNoise:  setDelayTimesVelvetNoise();
+        case DelayTimeAlgorithm::velvetPrime1: setDelayTimesVelvetPrime1();
+        case DelayTimeAlgorithm::velvetPrime2: setDelayTimesVelvetPrime2();
+        case DelayTimeAlgorithm::randomBasic:  setDelayTimesRandom();
+        case DelayTimeAlgorithm::randomPrime:  setDelayTimesRandomPrime();
             
         default:setDelayTimesVelvetNoise();
     }
@@ -454,7 +458,7 @@ void FDN::setDelayTimesVelvetNoise(){
 
 
 // set even spacing and then find the nearest prime numbers to that.
-void FDN::setDelayTimesVelvetPrime(){
+void FDN::setDelayTimesVelvetPrime1(){
     
     float minDelayTime = RV_MIN_DELAY_TIME;
     float maxDelayTime = RV_MAX_DELAY_TIME;
@@ -471,6 +475,193 @@ void FDN::setDelayTimesVelvetPrime(){
         delayTimes[i] = minDelayTime + outTapSpacing*(float)i;
         delayTimes[i] = RV_nearestPrime(delayTimes[i]);
         totalDelayTime += delayTimes[i];
+    }
+    
+    
+    
+    // randomly shuffle the order of delay times in the array
+    randomPermutation1Channel(delayTimes, numDelays, 1);
+    
+}
+
+
+/*
+ * Do the complete velvet noise algorithm but then move the times to nearest
+ * prime number
+ */
+void FDN::setDelayTimesVelvetPrime2(){
+    
+    // generate randomised delay tap outputs. See (http://users.spa.aalto.fi/mak/PUB/AES_Jarvelainen_velvet.pdf)
+    //    float maxDelayTime = 0.100f * 44100.0f;
+    //    float minDelayTime = 0.007f * 44100.0f;
+    float minDelayTime = RV_MIN_DELAY_TIME;
+    float maxDelayTime = RV_MAX_DELAY_TIME;
+    
+    float outTapSpacing = (float)(maxDelayTime - minDelayTime) / (float)numDelays;
+    randomSeed = std::rand() ;
+    updateRand();
+    // Set output tap times
+    totalDelayTime = 0;
+    
+    
+    
+
+    for (int i = 0; i < numDelays; i++){
+        delayTimes[i] = minDelayTime + outTapSpacing*((float)i + 0.5f);
+        float jitter = ((float)randomSeed / (float)RAND_MAX) * (outTapSpacing);
+        delayTimes[i] += jitter;
+        delayTimes[i] = RV_nearestPrime(delayTimes[i]);
+        totalDelayTime += delayTimes[i];
+    }
+    
+    
+    
+    // randomly shuffle the order of delay times in the array
+    randomPermutation1Channel(delayTimes, numDelays, 1);
+    
+}
+
+/*
+ * returns true if x is in array
+ *
+ * @param array    an array of length "length"
+ * @param x        the number to search for
+ * @param length   length of array
+ */
+bool arrayContains(int* array, int x, size_t length){
+    for(size_t i=0; i<length; i++)
+        if(array[i]==x) return true;
+    
+    return false;
+}
+
+
+/*
+ * return a random number in the range [lowerBound,upperBound]
+ */
+int randInRange(int lowerBound, int upperBound){
+    assert(upperBound >= lowerBound);
+    
+    uint32_t newRand = arc4random();
+    
+    uint32_t rangeWidth = upperBound - lowerBound + 1;
+    
+    return lowerBound + (int)(newRand % rangeWidth);
+}
+
+
+
+/*
+ * return a random prime number in the range [lowerBound,upperBound]
+ */
+int randPrimeInRange(int lowerBound, int upperBound){
+    assert(upperBound >= lowerBound);
+    
+    uint32_t newRand = arc4random();
+    
+    uint32_t rangeWidth = upperBound - lowerBound + 1;
+    
+    int randomNumber = lowerBound + (int)(newRand % rangeWidth);
+    
+    return RV_nearestPrime(randomNumber);
+}
+
+
+
+/*
+ * return the number of primes between lowerBound and upperBound
+ */
+int countPrimesInRange(int lowerBound, int upperBound){
+    assert(upperBound >= lowerBound);
+    assert(lowerBound >= 0);
+    
+    // reset lowerBound to the smallest prime >= lowerBound
+    lowerBound = RV_minPrime(lowerBound);
+    
+    // reset upperBound to the largest prime <= upperBound
+    upperBound = RV_maxPrime(upperBound);
+    
+    int primeCount = 1;
+    int currentPrime = lowerBound;
+    for(int i = lowerBound+1; i<=upperBound; i++){
+        // if there is a new prime <= i
+        int maxPrimeBoundedByI = RV_maxPrime(i);
+        if (maxPrimeBoundedByI != currentPrime){
+            currentPrime = maxPrimeBoundedByI;
+            primeCount++;
+        }
+    }
+    
+    return primeCount;
+}
+
+
+
+/*
+ * Set delay times to random numbers within bounds
+ */
+void FDN::setDelayTimesRandom(){
+    
+    // Set output tap times
+    totalDelayTime = 0;
+    
+    // clear the delay times array
+    memset(delayTimes, 0, sizeof(int)*numDelays);
+    
+    for (int i = 0; i < numDelays; i++){
+        // generate a random delay time in the specified range
+        int nextDelayTime = randInRange(RV_MIN_DELAY_TIME, RV_MAX_DELAY_TIME);
+        
+        // because we are not allowing duplicate delay times, we need to
+        // ensure that the range is sufficiently wide so that it is possible
+        // to fill the array without duplicating any values
+        assert(numDelays <= RV_MAX_DELAY_TIME - RV_MIN_DELAY_TIME + 1);
+        
+        // if the time we got is already in the array, choose another one
+        // until we find a unique one
+        while (arrayContains(delayTimes, nextDelayTime, numDelays))
+            nextDelayTime = randInRange(RV_MIN_DELAY_TIME, RV_MAX_DELAY_TIME);
+        
+        // store the unique random result to the ith position in the array
+        delayTimes[i] = nextDelayTime;
+    }
+    
+    
+    
+    // randomly shuffle the order of delay times in the array
+    randomPermutation1Channel(delayTimes, numDelays, 1);
+    
+}
+
+
+
+/*
+ * Set delay times to random prime numbers within bounds
+ */
+void FDN::setDelayTimesRandomPrime(){
+    
+    // Set output tap times
+    totalDelayTime = 0;
+    
+    // clear the delay times array
+    memset(delayTimes, 0, sizeof(int)*numDelays);
+    
+    for (int i = 0; i < numDelays; i++){
+        // generate a random delay time in the specified range
+        int nextDelayTime = randPrimeInRange(RV_MIN_DELAY_TIME, RV_MAX_DELAY_TIME);
+        
+        // because we are not allowing duplicate delay times, we need to
+        // ensure that the range is sufficiently wide so that it is possible
+        // to fill the array without duplicating any values
+        assert(numDelays <= countPrimesInRange(RV_MIN_DELAY_TIME, RV_MAX_DELAY_TIME));
+        
+        // if the time we got is already in the array, choose another one
+        // until we find a unique one
+        while (arrayContains(delayTimes, nextDelayTime, numDelays))
+            nextDelayTime = randPrimeInRange(RV_MIN_DELAY_TIME, RV_MAX_DELAY_TIME);
+        
+        // store the unique random prime result to the ith position in the array
+        delayTimes[i] = nextDelayTime;
     }
     
     

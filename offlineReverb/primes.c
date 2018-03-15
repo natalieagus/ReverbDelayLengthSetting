@@ -497,45 +497,99 @@ extern "C" {
         48611};
     
     
+    /*
+     * recursive binary search for x in RV_primes
+     * returns the index in RV_primes of the prime nearest to x
+     */
+    int RV_binarySearchGetIndex(int minIdx, int maxIdx, int x){
+        int maxPrime = RV_primes[maxIdx];
+        int minPrime = RV_primes[minIdx];
+        
+        // confirm that x is in the search region
+        // this check is only necessary on the first level of recursion
+        // but we are doing it on ever level to simplify the code
+        assert(x <= maxPrime && x >= minPrime);
+        
+        int searchRegionWidth = maxIdx-minIdx;
+        
+        // if the search region contains on the two values maxPrime amd minPrime
+        if (searchRegionWidth <= 1){
+            // if x is closer to minPrime, that is the nearest Prime
+            if (x - minPrime < maxPrime - x) return minIdx;
+            // otherwise the maxPrime is nearest
+            else return maxIdx;
+        }
+        
+        // split the search region in half
+        int splitIdx = minIdx + searchRegionWidth/2;
+        
+        // if x is in the first half of the search region
+        if (x < RV_primes[splitIdx]) return RV_binarySearchGetIndex(minIdx, splitIdx, x);
+        
+        // else x is in the second half of the search region
+        else return RV_binarySearchGetIndex(splitIdx, maxIdx, x);
+    }
+    
+    
+    
+    
+    /*
+     * returns the prime nearest to x
+     */
+    int RV_binarySearchGetValue(int minIdx, int maxIdx, int x){
+        return RV_primes[RV_binarySearchGetIndex(minIdx, maxIdx, x)];
+    }
 
-/*
- * recursive binary search for x in RV_primes, starting at idx
- * returns the prime nearest to x
- */
-int RV_binarySearch(int minIdx, int maxIdx, int x){
-    int maxPrime = RV_primes[maxIdx];
-    int minPrime = RV_primes[minIdx];
-    
-    int searchRegionWidth = maxIdx-minIdx;
-    
-    // if the search region contains on the two values maxPrime amd minPrime
-    if (searchRegionWidth <= 1)
-        // if x is closer to minPrime, that is the nearest Prime
-        if (x-minPrime < maxPrime - x) return minPrime;
-        // otherwise the maxPrime is nearest
-        else return maxPrime;
-    
-    // split the search region in half
-    int splitIdx = minIdx + searchRegionWidth/2;
-    
-    // if x is in the first half of the search region
-    if (x < RV_primes[splitIdx]) return RV_binarySearch(minIdx, splitIdx, x);
-    
-    // else x is in the second half of the search region
-    else return RV_binarySearch(splitIdx, maxIdx, x);
-}
 
 
 
-
-/*
- * returns the prime number nearest to x
- */
-int RV_nearestPrime(int x){
-    assert(x >= 0 && x < 5000);
+    /*
+     * returns the prime number nearest to x
+     */
+    int RV_nearestPrime(int x){
+        assert(x >= 0 && x < 5000);
+        
+        return RV_binarySearchGetValue(0, 5000-1, x);
+    }
     
-    return RV_binarySearch(0, 5000-1, x);
-}
+    
+    
+    /*
+     * returns the maximum prime number p such that p <= x
+     */
+    int RV_maxPrime(int x){
+        assert(x >= 2);
+        
+        int nearestPrimeIndex = RV_binarySearchGetIndex(0, 5000, x);
+        
+        int nearestPrime = RV_primes[nearestPrimeIndex];
+        
+        // if the nearest prime does not exceed x, return it
+        if (nearestPrime <= x) return nearestPrime;
+        
+        // otherwise return the next prime below nearestPrime
+        else return RV_primes[nearestPrimeIndex-1];
+    }
+    
+    
+    
+    
+    /*
+     * returns the minimum prime number p such that p >= x
+     */
+    int RV_minPrime(int x){
+        assert(x < 5000);
+        
+        int nearestPrimeIndex = RV_binarySearchGetIndex(0, 5000, x);
+        
+        int nearestPrime = RV_primes[nearestPrimeIndex];
+        
+        // if the nearest prime is not less than x, return it
+        if (nearestPrime >= x) return nearestPrime;
+        
+        // otherwise return the next prime above nearestPrime
+        else return RV_primes[nearestPrimeIndex+1];
+    }
     
     
     
