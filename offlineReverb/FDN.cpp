@@ -420,8 +420,12 @@ void FDN::setDelayTimesVelvetNoise(){
     // generate randomised delay tap outputs. See (http://users.spa.aalto.fi/mak/PUB/AES_Jarvelainen_velvet.pdf)
     //    float maxDelayTime = 0.100f * 44100.0f;
     //    float minDelayTime = 0.007f * 44100.0f;
-    float minDelayTime = RV_MIN_DELAY_TIME;
-    float maxDelayTime = RV_MAX_DELAY_TIME;
+//    float minDelayTime = RV_MIN_DELAY_TIME;
+//    float maxDelayTime = RV_MAX_DELAY_TIME;
+    
+        float minDelayTime = 2;
+        float maxDelayTime = 1;
+    
     
     float outTapSpacing = (float)(maxDelayTime - minDelayTime) / (float)numDelays;
     randomSeed = std::rand() ;

@@ -85,8 +85,16 @@ void SFM::convert_real_to_complex(float* x){
 
 
 inline void SFM::fft(float* input, size_t* outputLength) {
+
+//    for (int i = 0; i<sequence_length; i++) printf("%f ,", input[i]);
+
     
     vDSP_ctoz((DSPComplex*) input, 2, &inputSplit, 1, this->sequence_length/2);
+    
+//    for (int i = 0; i<sequence_length; i++){
+//        printf("{ %f , %f } , ", inputSplit.realp[i], inputSplit.imagp[i]);
+//    }
+    
     //
     // this seems to do the same thing as the line above it. I rewrote it
     // because it seems likely to be faster.
@@ -158,15 +166,16 @@ void correctDCNyquist_zripPacked(DSPSplitComplex* fftZripOutput){
 float SFM::spectral_flatness_value(float* x){
     //convert_real_to_complex(x);
     size_t outputLength;
+    
     fft(x, &outputLength);
     
     // create a pointer as an alias to the output of the fft (for readability)
     DSPSplitComplex* fftResult = &inputSplit;
     
-    // print the FFT output
+//     print the FFT output
 //    printf("\n FFT result: \n");
 //    for (int i = 0; i<outputLength; i++){
-//        printf("{Re: %f, Im : %f}, \n ", fftResult->realp[i], fftResult->imagp[i]);
+//        printf("{Re: %f, Im : %f}, \n ", fftResult->realp[i]/2, fftResult->imagp[i]/2);
 //    }
     
     correctDCNyquist_zripPacked(fftResult);

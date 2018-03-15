@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
     // Nearest power of 2 to 132300 is 2^17 = 131072
     // So set impulseLength (in samples) to 131072
 
-    int impulseLength = 4096; // changed to smaller value for testing
+    int impulseLength = 32; // changed to smaller value for testing
     int lags = 2;
 
     bool powerOfTwo = !(impulseLength==0) && !(impulseLength & (impulseLength-1));
