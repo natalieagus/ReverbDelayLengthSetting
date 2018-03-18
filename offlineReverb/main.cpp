@@ -90,7 +90,47 @@ void saveImpulse(int type, int samples){
 
 }
 
+void writeToFile(float* array, int samples, std::string filename = "SFM_"){
+    
+    std::ofstream ofstream;
+    std::ofstream* of = &ofstream;
+    filename += std::to_string(samples);
+    filename += ".csv";
+    
+    of->open(filename);
+    
+    
+    for (int i = 0; i<samples; i++){
+        *of << array[i] << ",";
+    }
+    
+    std::cout << "array saved for filename: " << filename << "\n.";
+    
+    of->close();
+    
+}
 
+void writeToFileDoubleArray(float** array, int outer_loop, int inner_loop, std::string filename = "SFM_"){
+    
+    std::ofstream ofstream;
+    std::ofstream* of = &ofstream;
+    filename += std::to_string(outer_loop*inner_loop);
+    filename += ".csv";
+    
+    of->open(filename);
+    
+    
+    for (int i = 0; i<outer_loop; i++){
+        for (int j = 0; j<inner_loop; j++){
+            *of << array[i][j] << ",";
+        }
+    }
+    
+    std::cout << "array saved for filename: " << filename << "\n.";
+    
+    of->close();
+    
+}
 
 int main(int argc, char* argv[])
 {
@@ -148,6 +188,9 @@ int main(int argc, char* argv[])
         printf("Iteration %i : ", i );
         printf("SFM : %f LBQ : %f mean_SFM: %f stdev_SFM: %f \n", SFM_output[i], LBQ_output[i], mean_SFM[i], stdev_SFM[i]);
     }
+    
+    writeToFile(SFM_output, iteration);
+    writeToFileDoubleArray(SFM_output_window_array, iteration, impulseLength/windowLength);
     
 }
 
