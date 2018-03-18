@@ -104,7 +104,7 @@ void writeToFile(float* array, int samples, std::string filename = "SFM_"){
         *of << array[i] << ",";
     }
     
-    std::cout << "array saved for filename: " << filename << "\n.";
+    std::cout << "array saved for filename: " << filename << "\n";
     
     of->close();
     
@@ -126,7 +126,7 @@ void writeToFileDoubleArray(float** array, int outer_loop, int inner_loop, std::
         }
     }
     
-    std::cout << "array saved for filename: " << filename << "\n.";
+    std::cout << "array saved for filename: " << filename << "\n";
     
     of->close();
     
@@ -142,8 +142,8 @@ int main(int argc, char* argv[])
     // Nearest power of 2 to 132300 is 2^17 = 131072
     // So set impulseLength (in samples) to 131072
 
-    int impulseLength = 32; // changed to smaller value for testing
-    int windowLength = 8;
+    int impulseLength = 1024; // changed to smaller value for testing
+    int windowLength = 256;
     int lags = 2;
 
     bool powerOfTwo = !(impulseLength==0) && !(impulseLength & (impulseLength-1));
@@ -165,7 +165,7 @@ int main(int argc, char* argv[])
     for (int i = 0 ; i<iteration ; i++){
 
         memset(output, 0, impulseLength*sizeof(float));
-        impulseResponse(16, impulseLength, output,DelayTimeAlgorithm::velvetNoise);
+        impulseResponse(16, impulseLength, output,DelayTimeAlgorithm::roomDimension);
         
 //         for printing signal
 //        printf("{");
@@ -177,16 +177,15 @@ int main(int argc, char* argv[])
         
         sfm.spectral_flatness_value_array(output, SFM_output_window_array[i], windowLength);
         
-        
-        printf("\n");
-        for (int k=0; k<impulseLength/windowLength; k++) printf("%f , ", SFM_output_window_array[i][k]);
-        printf("\n");
+//        printf("\n");
+//        for (int k=0; k<impulseLength/windowLength; k++) printf("%f , ", SFM_output_window_array[i][k]);
+//        printf("\n");
         
         vDSP_normalize(SFM_output_window_array[i], 1, NULL, 1, &mean_SFM[i], &stdev_SFM[i], impulseLength/windowLength);
     
         
         printf("Iteration %i : ", i );
-        printf("SFM : %f LBQ : %f mean_SFM: %f stdev_SFM: %f \n", SFM_output[i], LBQ_output[i], mean_SFM[i], stdev_SFM[i]);
+        printf("SFM : %f LBQ : %f mean_SFM: %f stdev_SFM: %f \n \n", SFM_output[i], LBQ_output[i], mean_SFM[i], stdev_SFM[i]);
     }
     
     writeToFile(SFM_output, iteration);

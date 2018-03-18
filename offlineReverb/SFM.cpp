@@ -12,7 +12,7 @@
 
 SFM::SFM(size_t N){
 
-    printf("\n \n SFM class instantiated\n");
+    printf("\nSFM class instantiated \n\n");
     
     // sequence length has to be power of two
     bool powerOfTwo = !(N==0) && !(N & (N-1));
@@ -224,8 +224,8 @@ float SFM::compute_spectral_flatness_value(float* x, size_t length){
     SFM_numerator = geometric_mean(power_spectra, outputLength);
     vDSP_meanv(power_spectra, 1, &SFM_denominator, outputLength);
 
-    printf("\n Geometric mean : %f ", SFM_numerator);
-    printf("\n Arithmetic mean: %f \n", SFM_denominator);
+//    printf("\n Geometric mean : %f ", SFM_numerator);
+//    printf("\n Arithmetic mean: %f \n", SFM_denominator);
     
     reset();
     

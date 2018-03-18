@@ -24,7 +24,7 @@
 #define NUMDELAYSEXT 1024
 #define AUDIOCHANNELS 1
 
-enum DelayTimeAlgorithm {velvetNoise, velvetPrime1, velvetPrime2, primePrime, randomBasic, randomPrime};
+enum DelayTimeAlgorithm {velvetNoise, velvetPrime1, velvetPrime2, primePrime, randomBasic, randomPrime, roomDimension};
 
 class FDN
 {
@@ -83,6 +83,7 @@ protected:
     void setDelayTimesVelvetPrime2();
     void setDelayTimesRandom();
     void setDelayTimesRandomPrime();
+    void setDelayTimesRoomDimension();
     
     
     int rvType, numDelays;

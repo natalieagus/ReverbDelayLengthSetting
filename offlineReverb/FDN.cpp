@@ -18,6 +18,8 @@
 #define DENSITY_WINDOW_SIZE 882 // 20.0 * (44100.0 / 1000.0); (20 ms)
 #define RV_MIN_DELAY_TIME 40
 #define RV_MAX_DELAY_TIME 200
+#define SOUNDSPEED 340.f
+#define SAMPLINGRATE 44100.f
 
 //#include <iostream>
 
@@ -27,16 +29,18 @@
  Write new methods at the end of this file
  */
 void FDN::setDelayTime(int delayType){
+
     switch(delayType){
         
             //continue adding cases here
-        case DelayTimeAlgorithm::velvetNoise:  setDelayTimesVelvetNoise();
-        case DelayTimeAlgorithm::velvetPrime1: setDelayTimesVelvetPrime1();
-        case DelayTimeAlgorithm::velvetPrime2: setDelayTimesVelvetPrime2();
-        case DelayTimeAlgorithm::randomBasic:  setDelayTimesRandom();
-        case DelayTimeAlgorithm::randomPrime:  setDelayTimesRandomPrime();
+        case DelayTimeAlgorithm::velvetNoise:   setDelayTimesVelvetNoise();
+        case DelayTimeAlgorithm::velvetPrime1:  setDelayTimesVelvetPrime1();
+        case DelayTimeAlgorithm::velvetPrime2:  setDelayTimesVelvetPrime2();
+        case DelayTimeAlgorithm::randomBasic:   setDelayTimesRandom();
+        case DelayTimeAlgorithm::randomPrime:   setDelayTimesRandomPrime();
+        case DelayTimeAlgorithm::roomDimension: setDelayTimesRoomDimension();
             
-        default:setDelayTimesVelvetNoise();
+//        default:setDelayTimesVelvetNoise();
     }
 }
 
@@ -52,12 +56,13 @@ FDN::FDN(int rvType, DelayTimeAlgorithm algo)
     numDelays = abs(rvType);
     
     setDelayTime(algo);
-    
+
     
     vDSP_sve((float*) delayTimes, 1, (float*) &totalDelayTime, numDelays);
+    
 //    printf("\n Total Delay length %i  ", totalDelayTime);
 //    printf("\n No. of FDN numDelays %i \n", numDelays);
-    
+//    
 //    for (int i = 0; i<numDelays; i ++){
 //        printf("Delay line %i length : %i \n", i, delayTimes[i]);
 //    }
@@ -421,6 +426,7 @@ void FDN::setDecayTime(double rt60){
 
 void FDN::setDelayTimesVelvetNoise(){
     
+    std::cout << "Delay length setting : setDelayTimesVelvetNoise() \n" ;
     // generate randomised delay tap outputs. See (http://users.spa.aalto.fi/mak/PUB/AES_Jarvelainen_velvet.pdf)
     //    float maxDelayTime = 0.100f * 44100.0f;
     //    float minDelayTime = 0.007f * 44100.0f;
@@ -460,6 +466,8 @@ void FDN::setDelayTimesVelvetNoise(){
 // set even spacing and then find the nearest prime numbers to that.
 void FDN::setDelayTimesVelvetPrime1(){
     
+    std::cout << "Delay length setting : setDelayTimesVelvetPrime1() \n" ;
+    
     float minDelayTime = RV_MIN_DELAY_TIME;
     float maxDelayTime = RV_MAX_DELAY_TIME;
     
@@ -490,7 +498,8 @@ void FDN::setDelayTimesVelvetPrime1(){
  * prime number
  */
 void FDN::setDelayTimesVelvetPrime2(){
-    
+
+    std::cout << "Delay length setting : setDelayTimesVelvetPrime2() \n" ;
     // generate randomised delay tap outputs. See (http://users.spa.aalto.fi/mak/PUB/AES_Jarvelainen_velvet.pdf)
     //    float maxDelayTime = 0.100f * 44100.0f;
     //    float minDelayTime = 0.007f * 44100.0f;
@@ -602,6 +611,7 @@ int countPrimesInRange(int lowerBound, int upperBound){
  */
 void FDN::setDelayTimesRandom(){
     
+    std::cout << "Delay length setting : setDelayTimesRandom() \n" ;
     // Set output tap times
     totalDelayTime = 0;
     
@@ -639,7 +649,8 @@ void FDN::setDelayTimesRandom(){
  * Set delay times to random prime numbers within bounds
  */
 void FDN::setDelayTimesRandomPrime(){
-    
+
+    std::cout << "Delay length setting : setDelayTimesRandomPrime() \n" ;
     // Set output tap times
     totalDelayTime = 0;
     
@@ -669,4 +680,44 @@ void FDN::setDelayTimesRandomPrime(){
     // randomly shuffle the order of delay times in the array
     randomPermutation1Channel(delayTimes, numDelays, 1);
     
+}
+
+
+
+/*
+ * Set delay times to correspond to room dimension evenly and jitter them
+ * jitter: a channel-dependent jitter, which prevents multiple occurrences of the same delay values in different channels. It is created by a random number εj from a uniform distribution in the open interval [−0.1, 0.1], multiplied with the arithmetic mean d ̄ of the room dimensions.
+ * It is delay length implementation by Wendt et. al but they use other unitary matrix (not Hadamard)
+ */
+void FDN::setDelayTimesRoomDimension(){
+ 
+    std::cout << "Delay length setting : setDelayTimesRoomDimension() \n" ;
+    float x = 1.0f;
+    float y = 1.0f;
+    float z = 1.0f;
+    
+    float A = -0.1f;
+    float B = 0.1f;
+//    srand((unsigned)time(NULL));
+    
+    float choices[3] = {x, y, z};
+    
+    float roomDimensionMean = (x + y + z)/3.f;
+    
+    for (int i = 0; i < numDelays; i++){
+        
+        float r = ((float) rand() / (float)RAND_MAX) * (B - A) + A;
+        float dimension = choices[i%3];
+//        std::cout << r << " " ;
+        float delayLength = 1.f/SOUNDSPEED * (dimension + roomDimensionMean * r);
+        delayTimes[i] = delayLength * SAMPLINGRATE;
+        
+//        std::cout << delayLength << " " << delayTimes[i];
+//        std::cout << "\n";
+        
+    }
+    
+
+    // randomly shuffle the order of delay times in the array
+    randomPermutation1Channel(delayTimes, numDelays, 1);
 }
