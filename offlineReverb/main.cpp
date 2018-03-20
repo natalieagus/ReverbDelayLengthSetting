@@ -90,31 +90,15 @@ void saveImpulse(int type, int samples){
 
 }
 
-void writeToFile(float* array, int samples, std::string filename = "SFM_"){
+/*
+ *For array with single dimension, set either outer_loop or inner_loop to 1
+ * Write double arrays to .csv file, with line break on each inner_loop
+ */
+void writeToFile(float* array, int outer_loop, int inner_loop, std::string filename = "SFM_"){
     
     std::ofstream ofstream;
     std::ofstream* of = &ofstream;
-    filename += std::to_string(samples);
-    filename += ".csv";
-    
-    of->open(filename);
-    
-    
-    for (int i = 0; i<samples; i++){
-        *of << array[i] << ",";
-    }
-    
-    std::cout << "array saved for filename: " << filename << "\n";
-    
-    of->close();
-    
-}
-
-void writeToFileDoubleArray(float** array, int outer_loop, int inner_loop, std::string filename = "SFM_"){
-    
-    std::ofstream ofstream;
-    std::ofstream* of = &ofstream;
-    filename += std::to_string(outer_loop*inner_loop);
+    filename += std::to_string(inner_loop*outer_loop);
     filename += ".csv";
     
     of->open(filename);
@@ -122,8 +106,9 @@ void writeToFileDoubleArray(float** array, int outer_loop, int inner_loop, std::
     
     for (int i = 0; i<outer_loop; i++){
         for (int j = 0; j<inner_loop; j++){
-            *of << array[i][j] << ",";
+            *of << array[i*inner_loop + j] << ",";
         }
+        *of << "\n";
     }
     
     std::cout << "array saved for filename: " << filename << "\n";
@@ -131,6 +116,29 @@ void writeToFileDoubleArray(float** array, int outer_loop, int inner_loop, std::
     of->close();
     
 }
+//
+//void writeToFileDoubleArray(float** array, int outer_loop, int inner_loop, std::string filename = "SFM_"){
+//
+//    std::ofstream ofstream;
+//    std::ofstream* of = &ofstream;
+//    filename += std::to_string(outer_loop*inner_loop);
+//    filename += ".csv";
+//
+//    of->open(filename);
+//
+//
+//    for (int i = 0; i<outer_loop; i++){
+//        for (int j = 0; j<inner_loop; j++){
+//            *of << array[i][j] << ",";
+//        }
+//        *of << "\n";
+//    }
+//
+//    std::cout << "array saved for filename: " << filename << "\n";
+//
+//    of->close();
+//
+//}
 
 int main(int argc, char* argv[])
 {
@@ -142,8 +150,9 @@ int main(int argc, char* argv[])
     // Nearest power of 2 to 132300 is 2^17 = 131072
     // So set impulseLength (in samples) to 131072
 
-    int impulseLength = 1024; // changed to smaller value for testing
-    int windowLength = 256;
+    int impulseLength = 16; // changed to smaller value for testing
+    int windowLength = 4;
+
     int lags = 2;
 
     bool powerOfTwo = !(impulseLength==0) && !(impulseLength & (impulseLength-1));
@@ -157,17 +166,18 @@ int main(int argc, char* argv[])
     float* LBQ_output = (float*) malloc(iteration*sizeof(float));
     float* mean_SFM = (float*) malloc(iteration*sizeof(float));
     float* stdev_SFM = (float*) malloc(iteration*sizeof(float));
+    float* SFM_early_late_output = (float*) malloc(iteration*2*sizeof(float));
  
-    float** SFM_output_window_array = (float**) malloc(iteration*sizeof(float*));
-    for (int i=0; i<iteration; i++)
-        SFM_output_window_array[i] = (float *)malloc(impulseLength/windowLength * sizeof(float));
+    float* SFM_output_window_array = (float*) malloc(iteration * impulseLength/windowLength*sizeof(float));
+//    for (int i=0; i<iteration; i++)
+//        SFM_output_window_array[i] = (float *)malloc(impulseLength/windowLength * sizeof(float));
 
     for (int i = 0 ; i<iteration ; i++){
 
         memset(output, 0, impulseLength*sizeof(float));
-        impulseResponse(16, impulseLength, output,DelayTimeAlgorithm::roomDimension);
+        impulseResponse(16, impulseLength, output,DelayTimeAlgorithm::velvetNoise);
         
-//         for printing signal
+//        std::cout << "Signal: " ;
 //        printf("{");
 //        for (int i = 0; i<impulseLength-1; i++) printf("%f ,", output[i]);
 //        printf("%f}", output[impulseLength-1]);
@@ -175,21 +185,25 @@ int main(int argc, char* argv[])
         SFM_output[i] = sfm.spectral_flatness_value(output);
         LBQ_output[i] = lbq_test.LBQtest(output);
         
-        sfm.spectral_flatness_value_array(output, SFM_output_window_array[i], windowLength);
+        sfm.spectral_flatness_value_array(output, SFM_output_window_array+(impulseLength/windowLength * i), windowLength);
+        
+        // 2205 is 50 ms, the nearest power of two to this is 2048
+        sfm.spectral_flatness_value_early_late(output, SFM_early_late_output+(2*i), SFM_early_late_output+(2*i + 1), windowLength);
         
 //        printf("\n");
-//        for (int k=0; k<impulseLength/windowLength; k++) printf("%f , ", SFM_output_window_array[i][k]);
+//        for (int k=0; k<impulseLength/windowLength; k++) printf("%f , ", *(SFM_output_window_array+(impulseLength/windowLength * i + k)));
 //        printf("\n");
         
-        vDSP_normalize(SFM_output_window_array[i], 1, NULL, 1, &mean_SFM[i], &stdev_SFM[i], impulseLength/windowLength);
+        vDSP_normalize(SFM_output_window_array+(impulseLength/windowLength * i), 1, NULL, 1, &mean_SFM[i], &stdev_SFM[i], impulseLength/windowLength);
     
         
         printf("Iteration %i : ", i );
         printf("SFM : %f LBQ : %f mean_SFM: %f stdev_SFM: %f \n \n", SFM_output[i], LBQ_output[i], mean_SFM[i], stdev_SFM[i]);
     }
     
-    writeToFile(SFM_output, iteration);
-    writeToFileDoubleArray(SFM_output_window_array, iteration, impulseLength/windowLength);
+    writeToFile(SFM_output, iteration, 1, "SFM_all");
+    writeToFile(SFM_output_window_array, iteration, impulseLength/windowLength, "SFM_array");
+    writeToFile(SFM_early_late_output, iteration, 2, "SFM_early_late");
     
 }
 

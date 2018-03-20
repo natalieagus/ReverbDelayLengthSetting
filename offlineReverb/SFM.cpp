@@ -237,6 +237,10 @@ float SFM::spectral_flatness_value(float* x){
     return compute_spectral_flatness_value(x, this->sequence_length);
 }
 
+void SFM::spectral_flatness_value_early_late(float* x, float* output_early, float* output_late, int early_samples){
+    *output_early = compute_spectral_flatness_value(x, early_samples);
+    *output_late = compute_spectral_flatness_value(x+early_samples, this->sequence_length - early_samples);
+}
 
 void SFM::spectral_flatness_value_array(float *x, float *SFM_array, int n){
     
@@ -249,3 +253,5 @@ void SFM::spectral_flatness_value_array(float *x, float *SFM_array, int n){
     }
     
 }
+
+

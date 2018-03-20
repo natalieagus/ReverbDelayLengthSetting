@@ -33,12 +33,12 @@ void FDN::setDelayTime(int delayType){
     switch(delayType){
         
             //continue adding cases here
-        case DelayTimeAlgorithm::velvetNoise:   setDelayTimesVelvetNoise();
-        case DelayTimeAlgorithm::velvetPrime1:  setDelayTimesVelvetPrime1();
-        case DelayTimeAlgorithm::velvetPrime2:  setDelayTimesVelvetPrime2();
-        case DelayTimeAlgorithm::randomBasic:   setDelayTimesRandom();
-        case DelayTimeAlgorithm::randomPrime:   setDelayTimesRandomPrime();
-        case DelayTimeAlgorithm::roomDimension: setDelayTimesRoomDimension();
+        case DelayTimeAlgorithm::velvetNoise:       { setDelayTimesVelvetNoise();        break;}
+        case DelayTimeAlgorithm::velvetPrime1:      { setDelayTimesVelvetPrime1();       break;}
+        case DelayTimeAlgorithm::velvetPrime2:      { setDelayTimesVelvetPrime2();       break;}
+        case DelayTimeAlgorithm::randomBasic:       { setDelayTimesRandom();             break;}
+        case DelayTimeAlgorithm::randomPrime:       { setDelayTimesRandomPrime();        break;}
+        case DelayTimeAlgorithm::roomDimension:     { setDelayTimesRoomDimension();      break;}
             
 //        default:setDelayTimesVelvetNoise();
     }

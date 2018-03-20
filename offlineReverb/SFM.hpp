@@ -27,6 +27,11 @@ public:
     // get an array of SFM values from samples with size 'n' each on input x
     void spectral_flatness_value_array(float* x, float* SFM_array, int n);
     
+    // computes SFM value in two parts, (1) early part (2) late part
+    // x        : time samples
+    // output   : SFM for (1) and (2)
+    void spectral_flatness_value_early_late(float* x, float* output_early, float* output_late, int early_samples);
+    
     
 private:
     
