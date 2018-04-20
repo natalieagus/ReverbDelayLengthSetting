@@ -65,27 +65,23 @@ void saveImpulseMultiple(int type, int samples, int times){
 }
 
 // Writes one impulse response .csv file
-void saveImpulse(int type, int samples){
+void saveImpulse(float* input, int samples, int interation_number){
     
     std::ofstream ofstream;
     std::ofstream* ofL = &ofstream;
     
     //    clock_t begin = clock();
     std::string filenameL = "impulse";
-    if (type > 0) filenameL += "H";
-    else filenameL += "C";
-    filenameL += std::to_string(abs(type));
+    filenameL += std::to_string(abs(interation_number));
     filenameL += ".csv";
     
     
     ofL->open(filenameL);
+    for (int i = 1; i < samples; i++){
+        *ofL << input[i] << ",";
+    }
     
-    
-    
-    FDN reverb = FDN(type,DelayTimeAlgorithm::velvetNoise);
-    reverb.impulseResponse_write(samples, ofL);
-    
-    std::cout << "impulse saved for type " << type << ".\n";
+    std::cout << "impulse saved for iteration " << interation_number << ".\n";
     ofL->close();
 
 }
@@ -180,6 +176,9 @@ int main(int argc, char* argv[])
         memset(output, 0, impulseLength*sizeof(float));
         impulseResponse(FDN_Size, impulseLength, output,DelayTimeAlgorithm::velvetNoise);
         
+        //save the impulse
+        saveImpulse(output, impulseLength, i);
+        
 //        std::cout << "Signal: " ;
 //        printf("{");
 //        for (int i = 0; i<impulseLength-1; i++) printf("%f ,", output[i]);
@@ -191,7 +190,7 @@ int main(int argc, char* argv[])
         sfm.spectral_flatness_value_array(output, SFM_output_window_array+(impulseLength/windowLength * i), windowLength);
         
         // 2205 is 50 ms, the nearest power of two to this is 2048
-        sfm.spectral_flatness_value_early_late(output, SFM_early_late_output+(2*i), SFM_early_late_output+(2*i + 1), windowLength);
+        sfm.spectral_flatness_value_early_late(output, SFM_early_late_output+(2*i), SFM_early_late_output+(2*i + 1), 2048);
         
 //        printf("\n");
 //        for (int k=0; k<impulseLength/windowLength; k++) printf("%f , ", *(SFM_output_window_array+(impulseLength/windowLength * i + k)));
