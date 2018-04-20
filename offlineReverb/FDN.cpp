@@ -17,7 +17,7 @@
 //#define M_E 2.71828182845904523536
 #define DENSITY_WINDOW_SIZE 882 // 20.0 * (44100.0 / 1000.0); (20 ms)
 #define RV_MIN_DELAY_TIME 40
-#define RV_MAX_DELAY_TIME 200
+#define RV_MAX_DELAY_TIME 800
 #define SOUNDSPEED 340.f
 #define SAMPLINGRATE 44100.f
 
@@ -430,11 +430,11 @@ void FDN::setDelayTimesVelvetNoise(){
     // generate randomised delay tap outputs. See (http://users.spa.aalto.fi/mak/PUB/AES_Jarvelainen_velvet.pdf)
     //    float maxDelayTime = 0.100f * 44100.0f;
     //    float minDelayTime = 0.007f * 44100.0f;
-//    float minDelayTime = RV_MIN_DELAY_TIME;
-//    float maxDelayTime = RV_MAX_DELAY_TIME;
-    
-        float minDelayTime = 2;
-        float maxDelayTime = 10;
+    float minDelayTime = RV_MIN_DELAY_TIME;
+    float maxDelayTime = RV_MAX_DELAY_TIME;
+//
+//        float minDelayTime = 2;
+//        float maxDelayTime = 10;
     
     
     float outTapSpacing = (float)(maxDelayTime - minDelayTime) / (float)numDelays;

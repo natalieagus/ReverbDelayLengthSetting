@@ -144,14 +144,15 @@ int main(int argc, char* argv[])
 {
     //number of repetition to generate IR
     int iteration = 3;
-
+    int FDN_Size = 16;
+    
     // Take 3 seconds of lossless FDN output:  44100 * 3 = 132300
     // Length of signal must be power of 2 for FFT in SFM.cpp
     // Nearest power of 2 to 132300 is 2^17 = 131072
     // So set impulseLength (in samples) to 131072
 
-    int impulseLength = 16; // changed to smaller value for testing
-    int windowLength = 4;
+    int impulseLength = 131072; // changed to smaller value for testing
+    int windowLength = 1024;
 
     int lags = 2;
 
@@ -166,6 +167,8 @@ int main(int argc, char* argv[])
     float* LBQ_output = (float*) malloc(iteration*sizeof(float));
     float* mean_SFM = (float*) malloc(iteration*sizeof(float));
     float* stdev_SFM = (float*) malloc(iteration*sizeof(float));
+    
+    //separated into 2 values per iteration: SFM for early part and SFM for late part
     float* SFM_early_late_output = (float*) malloc(iteration*2*sizeof(float));
  
     float* SFM_output_window_array = (float*) malloc(iteration * impulseLength/windowLength*sizeof(float));
@@ -175,7 +178,7 @@ int main(int argc, char* argv[])
     for (int i = 0 ; i<iteration ; i++){
 
         memset(output, 0, impulseLength*sizeof(float));
-        impulseResponse(16, impulseLength, output,DelayTimeAlgorithm::velvetNoise);
+        impulseResponse(FDN_Size, impulseLength, output,DelayTimeAlgorithm::velvetNoise);
         
 //        std::cout << "Signal: " ;
 //        printf("{");
