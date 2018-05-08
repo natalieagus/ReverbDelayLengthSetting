@@ -438,8 +438,7 @@ void FDN::setDelayTimesVelvetNoise(){
     
     
     float outTapSpacing = (float)(maxDelayTime - minDelayTime) / (float)numDelays;
-    randomSeed = std::rand() ;
-    updateRand();
+    
     // Set output tap times
     totalDelayTime = 0;
     
@@ -447,8 +446,8 @@ void FDN::setDelayTimesVelvetNoise(){
     
     float scale = 1.0;
     for (int i = 0; i < numDelays; i++){
-        delayTimes[i] = minDelayTime + outTapSpacing*((float)i + 0.5f);
-        float jitter = ((float)randomSeed / (float)RAND_MAX) * (outTapSpacing);
+        delayTimes[i] = minDelayTime + (outTapSpacing * (float)i);
+        float jitter = ((float)rand() / (float)RAND_MAX) * (outTapSpacing);
         delayTimes[i] += jitter;
         delayTimes[i] *= scale;
         totalDelayTime += delayTimes[i];
