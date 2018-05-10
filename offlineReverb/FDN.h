@@ -20,7 +20,7 @@
 #endif /* defined(__offlineReverb__FDN__) */
 
 
-#define NUMDELAYS 16
+//#define NUMDELAYS 16
 #define NUMDELAYSEXT 1024
 #define AUDIOCHANNELS 1
 
@@ -36,6 +36,22 @@ public:
     ~FDN();
     
 protected:
+    
+    //new reverb method
+    float** delayLines;
+    size_t* readIdx;
+    size_t* writeIdx;
+    size_t numOfDelay;
+    size_t* delayTiming;
+    float* dlOut;
+    float* temp;
+    float* temp4;
+    
+    void TestReverb_init(size_t numOfDelay,float sampleRate);
+    void TestReverb_process(float* input,float* output, size_t numSamples);
+    void TestReverb_impulseResponse(size_t frameCount, float* output);
+    float TestReverb_processSample(float x);
+    
     float inputAttenuation;
     float matrixAttenuation;
     float wetPct,dryPct;
@@ -60,7 +76,7 @@ protected:
     int delayTimes[NUMDELAYSEXT];
     
     // The Feedback matrix
-    float feedbackMatrix[NUMDELAYS][NUMDELAYS];
+//    float feedbackMatrix[NUMDELAYS][NUMDELAYS];
     
     int random_val, randomSeed;
     float maxRand_f;
@@ -87,6 +103,8 @@ protected:
     
     
     int rvType, numDelays;
+    
+    
     
 public:
     void resetDelay(float decayTime);

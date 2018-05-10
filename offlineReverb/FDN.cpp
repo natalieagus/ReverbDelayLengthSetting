@@ -14,10 +14,12 @@
 #include <cstdlib>
 #include <ctime>
 #include "primes.h"
+#include "BMFastHadamard.h"
+#include "BMVelvetNoise.h"
 //#define M_E 2.71828182845904523536
 #define DENSITY_WINDOW_SIZE 882 // 20.0 * (44100.0 / 1000.0); (20 ms)
-#define RV_MIN_DELAY_TIME 40
-#define RV_MAX_DELAY_TIME 800
+#define RV_MIN_DELAY_TIME 100
+#define RV_MAX_DELAY_TIME 2000
 #define SOUNDSPEED 340.f
 #define SAMPLINGRATE 44100.f
 
@@ -63,9 +65,9 @@ FDN::FDN(int rvType, DelayTimeAlgorithm algo)
 //    printf("\n Total Delay length %i  ", totalDelayTime);
 //    printf("\n No. of FDN numDelays %i \n", numDelays);
 //    
-//    for (int i = 0; i<numDelays; i ++){
-//        printf("Delay line %i length : %i \n", i, delayTimes[i]);
-//    }
+    for (int i = 0; i<numDelays; i ++){
+        printf("Delay line %i length : %i \n", i, delayTimes[i]);
+    }
 //
     //Settng delay buffers
     // declare and initialise the delay buffers
@@ -97,6 +99,7 @@ FDN::FDN(int rvType, DelayTimeAlgorithm algo)
     }
 
     hadamardTransform(tapSigns, temp3, numDelays);
+
     
     memcpy(tapSigns, temp3, sizeof(float) * numDelays);
     
@@ -109,9 +112,95 @@ FDN::FDN(int rvType, DelayTimeAlgorithm algo)
     resetDelay(-1.0f);
     
     
+
+    
+    
 }
 
+void FDN::TestReverb_init(size_t numOfDelay,float sampleRate){
+    //new reverb method init
+    this->numOfDelay = rvType;
+    assert(BMPowerOfTwoQ(numOfDelay));
+    assert(numOfDelay>=16);
+    
+    //Init delay line
+    //cast void* from malloc when used in cpp
+    delayLines = (float**) malloc(sizeof(float*)*numOfDelay);
+    readIdx = (size_t*) malloc(sizeof(size_t)*numOfDelay);
+    writeIdx = (size_t*) malloc(sizeof(size_t)*numOfDelay);
+    dlOut = (float*) malloc(sizeof(float)*numOfDelay);
+    temp = (float*) malloc(sizeof(float)*numOfDelay);
+    temp4 = (float*) malloc(sizeof(float)*numOfDelay);
+    delayTiming = (size_t*) malloc(sizeof(size_t)*numOfDelay);
+    
+    //Randomize delaytime between min & max
+    BMVelvetNoise_setTapIndices(RV_MIN_DELAY_TIME, RV_MAX_DELAY_TIME, this->delayTiming, SAMPLINGRATE, numOfDelay);
+    //    This->delayTimes[0] = 6;
+    //Init delay line
+    for(size_t i = 0;i<numOfDelay;i++){
+        printf("%zu\n",delayTiming[i]);
+        delayLines[i] = (float*) malloc(sizeof(float)*delayTiming[i]);
+        memset(delayLines[i],0,sizeof(float)*delayTiming[i]);
+        
+        readIdx[i] = 0;
+        writeIdx[i] = delayTiming[i];
+    }
+}
 
+void FDN::TestReverb_process(float *input, float *output, size_t numSamples){
+    for (size_t i = 0; i<numSamples; i++) {
+        output[i] = TestReverb_processSample(input[i]);
+    }
+}
+
+inline float FDN::TestReverb_processSample(float x){
+    //Get dlOut
+    float xOut = x;
+    float gain = 1./sqrt(numOfDelay);
+    for(size_t i=0;i<numOfDelay;i++){
+        dlOut[i] = delayLines[i][readIdx[i]] * gain;
+        xOut += dlOut[i];
+    }
+    //Apply BMFastHadamard
+    BMFastHadamardTransform(dlOut, dlOut, temp, temp4, numOfDelay);
+    
+    //Save dlIn
+    for(size_t i=0;i<numOfDelay;i++){
+        delayLines[i][writeIdx[i]] = x + dlOut[i];
+    }
+    
+    //Process read/write idx
+    for (size_t i=0; i<numOfDelay; i++) {
+        writeIdx[i] ++;
+        if(writeIdx[i]>delayTiming[i])
+            writeIdx[i] = 0;
+        readIdx[i] ++;
+        if(readIdx[i]>delayTiming[i])
+            readIdx[i] = 0;
+    }
+    
+    return xOut;
+}
+
+void FDN::TestReverb_impulseResponse(size_t frameCount, float* output){
+    float* irBuffer =(float*)  malloc(sizeof(float)*frameCount);
+//    float* outBuffer = (float*) malloc(sizeof(float)*frameCount);
+    
+    for(int i=0;i<frameCount;i++){
+        if(i==0)
+            irBuffer[i] = 1;
+        else
+            irBuffer[i] = 0;
+    }
+    
+    TestReverb_process(irBuffer, output, frameCount);
+    
+//    printf("\n\\impulse response: {\n");
+//    for(size_t i=0; i<(frameCount-1); i++)
+//        printf("%f\n", outBuffer[i]);
+//    printf("%f}\n\n",outBuffer[frameCount-1]);
+    
+}
 
 void FDN::impulseResponse_write(long numSamples, std::ofstream* outputFile){
     float left, right;
@@ -165,10 +254,15 @@ inline void FDN::processAudio(float* pInput, float* pOutputL, float* pOutputR)
         // copy delay line signals to output buffer and attenuate
         outputs[i] = delayBuffers[rwIndices[i]] * tapGains[i];
 //        printf("outputs[%i] %f tapsigns[%i] %f", i, outputs[i], i, tapSigns[i]);
-        *pOutputL += outputs[i] * tapSigns[i];
+        *pOutputL += outputs[i] ;//* tapSigns[i];
     }
     
-    // process the feedback matrix
+
+    // apply the matrix attenuation before mixing
+//    vDSP_vsmul (outputs, 1, &matrixAttenuation, outputs, 1, numDelays);
+//         process the feedback matrix
+//    BMFastHadamardTransform(outputs, temp3, temp1, temp2, numDelays);
+
     hadamardTransform(outputs, temp3, numDelays);
     for (int i = 0; i < numDelays; i++) delayBuffers[rwIndices[i]] = temp3[i] + xn;
 
@@ -391,6 +485,9 @@ void FDN::resetReadIndices(){
 }
 
 
+
+
+
 // computes the appropriate feedback gain attenuation
 // to get a decay envelope with the specified RT60 time (in seconds)
 // from a delay line of the specified length.
@@ -428,8 +525,8 @@ void FDN::setDelayTimesVelvetNoise(){
     
     std::cout << "Delay length setting : setDelayTimesVelvetNoise() \n" ;
     // generate randomised delay tap outputs. See (http://users.spa.aalto.fi/mak/PUB/AES_Jarvelainen_velvet.pdf)
-    //    float maxDelayTime = 0.100f * 44100.0f;
-    //    float minDelayTime = 0.007f * 44100.0f;
+//        float maxDelayTime = 0.100f * 44100.0f;
+//        float minDelayTime = 0.007f * 44100.0f;
     float minDelayTime = RV_MIN_DELAY_TIME;
     float maxDelayTime = RV_MAX_DELAY_TIME;
 //

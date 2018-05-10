@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
     // So set impulseLength (in samples) to 131072
 
     int impulseLength = 131072; // changed to smaller value for testing
-    int windowLength = 1024;
+    int windowLength = 2048;
 
     int lags = 2;
 
@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
     for (int i = 0 ; i<iteration ; i++){
 
         memset(output, 0, impulseLength*sizeof(float));
-        impulseResponse(FDN_Size, impulseLength, output,DelayTimeAlgorithm::velvetNoise);
+        impulseResponse(FDN_Size, impulseLength, output,DelayTimeAlgorithm::randomBasic);
         
         //save the impulse
         saveImpulse(output, impulseLength, i);

@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		2C1002FC2056E43D00E54DA3 /* SFM.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2C1002FA2056E43D00E54DA3 /* SFM.cpp */; };
 		2C96AF69205793C400AA726D /* LBQ.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2C96AF67205793C400AA726D /* LBQ.cpp */; };
+		2CB64D002091F807006826A4 /* BMVelvetNoise.c in Sources */ = {isa = PBXBuildFile; fileRef = 2CB64CFE2091F807006826A4 /* BMVelvetNoise.c */; };
 		2CC44A15201EFD8B0063FE75 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CC44A14201EFD8B0063FE75 /* Accelerate.framework */; };
 		3A3BA0B4205915CF00027CEE /* primes.c in Sources */ = {isa = PBXBuildFile; fileRef = 3A3BA0B3205915CF00027CEE /* primes.c */; };
 		3AA66E581B0B1196007B75E7 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3AA66E571B0B1196007B75E7 /* main.cpp */; };
@@ -32,6 +33,9 @@
 		2C1002FB2056E43D00E54DA3 /* SFM.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = SFM.hpp; sourceTree = "<group>"; };
 		2C96AF67205793C400AA726D /* LBQ.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LBQ.cpp; sourceTree = "<group>"; };
 		2C96AF68205793C400AA726D /* LBQ.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = LBQ.hpp; sourceTree = "<group>"; };
+		2CB64CFC2091F771006826A4 /* BMFastHadamard.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BMFastHadamard.h; sourceTree = "<group>"; };
+		2CB64CFE2091F807006826A4 /* BMVelvetNoise.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = BMVelvetNoise.c; sourceTree = "<group>"; };
+		2CB64CFF2091F807006826A4 /* BMVelvetNoise.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BMVelvetNoise.h; sourceTree = "<group>"; };
 		2CC44A14201EFD8B0063FE75 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		3A3BA0B220590F3F00027CEE /* primes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = primes.h; sourceTree = "<group>"; };
 		3A3BA0B3205915CF00027CEE /* primes.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = primes.c; sourceTree = "<group>"; };
@@ -85,7 +89,10 @@
 				2C1002FB2056E43D00E54DA3 /* SFM.hpp */,
 				3AA66E571B0B1196007B75E7 /* main.cpp */,
 				2C96AF67205793C400AA726D /* LBQ.cpp */,
+				2CB64CFC2091F771006826A4 /* BMFastHadamard.h */,
 				2C96AF68205793C400AA726D /* LBQ.hpp */,
+				2CB64CFE2091F807006826A4 /* BMVelvetNoise.c */,
+				2CB64CFF2091F807006826A4 /* BMVelvetNoise.h */,
 				3AA66E5E1B0B1255007B75E7 /* FDN.cpp */,
 				3AA66E5F1B0B1255007B75E7 /* FDN.h */,
 				3A3BA0B220590F3F00027CEE /* primes.h */,
@@ -158,6 +165,7 @@
 				3AA66E601B0B1255007B75E7 /* FDN.cpp in Sources */,
 				3AA66E581B0B1196007B75E7 /* main.cpp in Sources */,
 				2C96AF69205793C400AA726D /* LBQ.cpp in Sources */,
+				2CB64D002091F807006826A4 /* BMVelvetNoise.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
